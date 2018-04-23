@@ -114,5 +114,7 @@ class Log {
 
 								void printLogInfo(std::string filename);
 
+								void processLogs(std::string path, std::string logName);
+
 
 };
