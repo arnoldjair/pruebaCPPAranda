@@ -11,8 +11,21 @@ using namespace std;
 
 
 int main(int argc, char **argv){			
-				ZLib* zlib = new ZLib();
+
+				if(argc == 1) {
+								cout<<"Usage: "<<endl<<"./programa <zipfilepath> <logname>"<<endl;
+				}
 				string path(argv[1]);
+				string logName("log.txt");
+				if(argc >= 3) {
+								logName = argv[2];
+				} 
+
+				ZLib* zlib = new ZLib();
+				std::ofstream ofs;
+				ofs.open(logName, std::ofstream::out | std::ofstream::trunc);
+				//ofs.close();
+
 				zipper::Unzipper unzipper = zlib->getUnzipper(path);
 
 				vector<zipper::ZipEntry> entries = unzipper.entries();
@@ -20,6 +33,8 @@ int main(int argc, char **argv){
 				cout<<"Número de entradas: "<<entries.size()<<endl;
 				std::string logsPath;
 				std::vector<Log> logs;
+
+				ofs<<"Logs greater than 10MB: "<<endl;
 
 				for(std::vector<zipper::ZipEntry>::iterator it = entries.begin(); it != entries.end(); ++it) {
 								//cout<<"Entry: "<<it->name<<endl;
@@ -34,19 +49,23 @@ int main(int argc, char **argv){
 																std::string name = it->name.substr(pos);
 																Log log = Log(name, it->name, it->uncompressedSize);
 																logs.push_back(log);
+																if(it->uncompressedSize >= 10000000) {
+																				ofs<<"\tname => "<<it->uncompressedSize*1.0 / 10000000<<" MB"<<endl; 
+																}
 												}
 
 								}
 				}
 
+				ofs<<"Logs:"<<endl;
+
+				ofs.close();
+
 				cout<<"Total logs found: "<<logs.size()<<endl;
 
 				if(logsPath.size() != 0) {
 								cout<<"Logs folder found: "<<logsPath<<endl;
-								unzipper.extractEntry(logsPath);
 				}
-				boost::filesystem::path dstFolder = "tmp";
-				boost::filesystem::create_directory(dstFolder);
 
 				for(auto& it : logs) {
 								//In memory
@@ -67,8 +86,8 @@ int main(int argc, char **argv){
 
 								//Map
 								std::map<std::size_t, unsigned long long int> hashMap;
-								//std::map<std::size_t, std::string> lineMap;
-								std::map<std::string, unsigned long long int> lineMap;
+								std::map<std::size_t, std::string> lineHashMap;
+								//std::map<std::string, unsigned long long int> lineHashMap;
 								std::map<std::size_t, unsigned long long int> errorMap;
 
 								while(std::getline(ss, line)){
@@ -113,43 +132,41 @@ int main(int argc, char **argv){
 																it.setLongestLine(count + 1);
 												}
 
-												size_t str_hash = hash_fn(line);
-												if(hashMap.count(str_hash) == 0) {
-																hashMap.insert(std::pair<std::size_t, unsigned long long int>(str_hash, 1));
-																lineMap.insert(std::pair<std::size_t, std::string>(str_hash, line));
-												} else {
-																unsigned long long int currCount = hashMap.at(str_hash);
-												}
-												//toca meter en el objeto los dos hash map. 
-												//crear un map para las líneas que tienen error.
-												//crear un contador en el objeto para los tres tipos de logs.
-												//
 												line.erase(std::remove(line.begin(), line.end(), '\r'), line.end());
-												std::regex pattern("\\b\\d{4}[-]\\d{2}[-]\\d{2}\\b");
+
+												//std::regex pattern("\\b\\d{4}[-]\\d{2}[-]\\d{2}\\b");
 												//std::regex pattern("\\b\\d{4}[-]\\d{2}[-]\\d{2}[ ]\\d{2}[:]\\d{2}[:]\\d{2}\\b");
-												//Muy costoso...
-												/*if(line.length() > 20 && regex_search(line,  pattern)) { //Osea, si hay una fecha
+												//Muy costoso
+												/*if(line.length() > 22 && regex_search(line,  pattern)) { //Osea, si hay una fecha
 													line = line.substr(22);
 													}*/
 												if(line.find("[") == 0 && line.find("]") == 20) {
 																line = line.substr(22);
 												}
-												std::map<std::string, unsigned long long int>::iterator lineIt = lineMap.find(line);
-												if(lineIt != lineMap.end()) {
+
+												size_t str_hash = hash_fn(line);
+												std::map<std::size_t, unsigned long long int>::iterator lineIt = hashMap.find(str_hash);
+												if(lineIt != hashMap.end()) {
 																lineIt->second = lineIt->second + 1;
 												} else {
-																lineMap.insert(std::pair<std::string, unsigned long long int>(line, 1));
+																hashMap.insert(std::pair<std::size_t, unsigned long long int>(str_hash, 1));
+																lineHashMap.insert(std::pair<std::size_t, std::string>(str_hash, line));
 												}
-
-
 												count++;
 								}
+
+								std::map<std::string, unsigned long long int> lineMap;
+								for(auto &hashMapIt: hashMap) {
+												//cout<<"First: "<<hashMapIt.first<<". Second: "<<hashMapIt.second<<std::endl;
+												auto val = lineHashMap[hashMapIt.first];
+												lineMap[val] = hashMapIt.second;
+								}
+
 								it.setCommonErrorCount(commonErrorCount);
 								it.setCommonError(commonError);
 								it.setLineMap(lineMap);
-								it.printLogInfo();
+								it.printLogInfo(logName);
 
-								//unzipper.extractEntry(it.getName());
 				}
 
 

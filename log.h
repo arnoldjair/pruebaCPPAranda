@@ -112,5 +112,7 @@ class Log {
 
 								void printLogInfo();
 
+								void printLogInfo(std::string filename);
+
 
 };
