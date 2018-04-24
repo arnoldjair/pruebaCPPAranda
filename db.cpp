@@ -10,6 +10,9 @@
 DB::~DB(){
 }
 
+DBEntry::~DBEntry() {
+}
+
 void DB::printDBInfo() {
 				std::cout<<"\tName: "<<this->name<<std::endl;
 				std::cout<<"\tPath: "<<this->path<<std::endl;
@@ -23,6 +26,10 @@ void DB::printDBInfo(std::string filename) {
 								logFile<<"\tName: "<<this->name<<std::endl;
 								logFile<<"\tPath: "<<this->path<<std::endl;
 								logFile<<"\tsize: "<<this->size<<" bytes"<<std::endl;
+								logFile<<"\tTables info:"<<std::endl;
+								for(auto& it : this->entries) {
+												logFile<<"\t\t"<<"Tabe "<<it.getTblName()<<" has "<<it.getNumRecords()<<" records"<<endl;
+								}
 								logFile<<std::endl<<std::endl<<std::endl;
 								logFile.close();
 				}
@@ -70,6 +77,7 @@ void DB::processDBs(std::string path, std::string logName) {
 																} else {
 																				cout<<"Database error"<<endl;
 																}
+																sqlite3_close(sqliteDB);
 												}
 
 								}
@@ -86,9 +94,36 @@ void DB::processDBs(std::string path, std::string logName) {
 				}
 
 				for(auto& it : dbs) {
+								std::vector<DBEntry> currEntries;
+								//Esto no es necesario, total no se eliminó la carpeta extraída unas cuantas líneas atrás. 
 								unzipper.extractEntry(it.getPath());
-								it.printDBInfo(logName);
+								sqlite3 *sqliteDB;
+								sqlite3_stmt *stmt;
+								int rc = sqlite3_open(it.getPath().c_str(), &sqliteDB);
+								if(rc == SQLITE_OK) {
+												sqlite3_prepare_v2(sqliteDB, "SELECT * FROM sqlite_master where type='table'", -1, &stmt, NULL);
+												while (sqlite3_step(stmt) != SQLITE_DONE) {
+																int i;
+																int num_cols = sqlite3_column_count(stmt);
+																//Llega type, name, tbl_name, rootpage y sql.
+																std::string tableName = (const char*) (sqlite3_column_text(stmt, 2));
+																std::string sql = (const char*)(sqlite3_column_text(stmt, 4));
+																unsigned long long int numRecords = 0;
+																sqlite3_stmt *recordsStmt;
+																std::string recordSql = "select count(*) from "+ tableName;
+																sqlite3_prepare_v2(sqliteDB, recordSql.c_str(), -1, &recordsStmt, NULL);
+																//Debe haber una forma de saber cuantos registros hay, aunque en la forma vieja de java hacía lo mismo.
+																while(sqlite3_step(recordsStmt) != SQLITE_DONE) {
+																				numRecords = sqlite3_column_int(recordsStmt, 0);
+																				//cout<<"Num records "<<tableName<<": "<<numRecords<<endl;
+																}
+																DBEntry currEntry(tableName, sql, numRecords);
+																currEntries.push_back(currEntry);
 
+												}
+								}	
+								it.setEntries(currEntries);
+								it.printDBInfo(logName);
 				}
 
 

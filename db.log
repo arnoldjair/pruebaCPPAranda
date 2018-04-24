@@ -1,0 +1,36 @@
+DBs:
+	Name: Agent9.3.2.dat
+	Path: Aranda/Aranda AGENT 9/data/Agent9.3.2.dat
+	size: 36741120 bytes
+	Tables info:
+		Tabe ACTION_SYSTEM_SCHEDULES has 22 records
+		Tabe ACTION_SYSTEM_SCHEDULES_PARAMETERS has 1 records
+		Tabe OUTPUT_MQ has 0 records
+		Tabe HTTP_DOWNLOAD has 0 records
+		Tabe AFL_STATE has 1 records
+		Tabe AFL_FILE_PATH has 91971 records
+		Tabe AFL_FILE_EXTENSION has 3005 records
+		Tabe AFL_FILE_SAVED has 0 records
+		Tabe AFL_FILE_HARVERSTING has 563142 records
+		Tabe AFL_FILE_DETAIL has 0 records
+		Tabe AFL_FILE_CHANGED has 0 records
+		Tabe DATA has 31 records
+		Tabe AAM_REGISTERED_SOFTWARE has 506 records
+		Tabe ASM_USER has 1 records
+		Tabe APWM_STATUS_DATA has 0 records
+		Tabe ASM_PROCESS has 2 records
+		Tabe ASD_EXECUTION has 0 records
+		Tabe APWM_ACTION has 0 records
+		Tabe ASM_USAGE has 4 records
+		Tabe ASD_CREDENTIAL has 0 records
+		Tabe APWM_PLAN has 0 records
+		Tabe ASD_EXECUTION_PACKAGE has 0 records
+		Tabe APWM_SCHEDULE has 0 records
+		Tabe APM_CATALOG has 1 records
+		Tabe ASD_CLEANUP has 0 records
+		Tabe APWM_FORBIDDEN_PROGRAMS has 0 records
+		Tabe ASM_DATA has 3 records
+		Tabe APWM_DATA has 1 records
+
+
+
